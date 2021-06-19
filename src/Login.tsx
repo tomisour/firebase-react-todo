@@ -9,12 +9,15 @@ const Login: React.FC = (props: any) => {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    auth.onAuthStateChanged((user) => {
-      user && props.history.push("/");
+    const unSub = auth.onAuthStateChanged((user) => {
+      if (user != null) {
+        props.history.push("/");
+      }
     });
+    return () => unSub();
   }, [props.history]);
   return (
-    <div>
+    <div className={styles.login__root}>
       <h1>{isLogin ? "Login" : "Register"}</h1>
       <br />
       <FormControl>
@@ -41,6 +44,41 @@ const Login: React.FC = (props: any) => {
           }}
         />
       </FormControl>
+      <br />
+      <Button
+        variant="contained"
+        color="primary"
+        size="small"
+        onClick={async () => {
+          if (isLogin) {
+            try {
+              await auth.signInWithEmailAndPassword(email, password);
+              props.history.push("/");
+            } catch (error) {
+              alert(error.message);
+            }
+          } else {
+            try {
+              await auth.createUserWithEmailAndPassword(email, password);
+              props.history.push("/");
+            } catch (error) {
+              alert(error.message);
+            }
+          }
+        }}
+      >
+        {isLogin ? "Login" : "Register"}
+      </Button>
+      <br />
+      <Typography align="center">
+        <span
+          onClick={() => {
+            setisLogin(!isLogin);
+          }}
+        >
+          {isLogin ? "Create new account?" : "Back to Login?"}
+        </span>
+      </Typography>
     </div>
   );
 };

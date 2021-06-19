@@ -2,11 +2,10 @@ import { FormControl, List } from "@material-ui/core";
 import { TextField } from "@material-ui/core";
 import React, { useState, useEffect } from "react";
 import styles from "./App.module.css";
-import { db } from "./firebase";
-import { AddToPhotos } from "@material-ui/icons";
+import { auth, db } from "./firebase";
+import { AddToPhotos, ExitToApp } from "@material-ui/icons";
 import TaskItem from "./TaskItem";
 import { makeStyles } from "@material-ui/styles";
-
 const useStyles = makeStyles({
   field: {
     marginTop: 30,
@@ -18,7 +17,7 @@ const useStyles = makeStyles({
   },
 });
 
-const App: React.FC = () => {
+const App: React.FC = (props: any) => {
   const [tasks, setTasks] = useState([{ id: "", title: "" }]);
   const [input, setInput] = useState("");
   const classses = useStyles();
@@ -30,6 +29,14 @@ const App: React.FC = () => {
     });
     return () => unSub();
   }, []);
+  useEffect(() => {
+    const unSub = auth.onAuthStateChanged((user) => {
+      if (!user) {
+        props.history.push("login");
+      }
+    });
+    return () => unSub();
+  }, []);
   const newTask = (e: React.MouseEvent<HTMLButtonElement>) => {
     db.collection("tasks").add({ title: input });
     setInput("");
@@ -38,6 +45,20 @@ const App: React.FC = () => {
   return (
     <div className={styles.app__root}>
       <h1>Todo APP by React</h1>
+      <button
+        className={styles.app__logout}
+        onClick={async () => {
+          try {
+            await auth.signOut();
+            props.history.push("login");
+          } catch (error) {
+            alert(error.message);
+          }
+        }}
+      >
+        {" "}
+        <ExitToApp />
+      </button>
       <br />
       <FormControl>
         <TextField
